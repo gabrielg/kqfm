@@ -9,25 +9,29 @@
 #include <err.h>
 #include <errno.h>
 #include <string.h>
+#include <search.h>
 
-const char* program_name;
+const char *program_name;
 
 const struct option longopts[] = {
     {"help", no_argument, NULL, 'h'},
     {NULL,   0,           NULL, 0}
 };
 
-#define MIN_PATHS 1024
-char **paths;
-size_t paths_size = MIN_PATHS * sizeof(char *);
+struct path_entry {
+    uintptr_t   *next;
+    uintptr_t   *prev;
+    char        *path;
+};
 
-void print_usage(FILE * stream)
+struct path_entry *paths_head = NULL;
+
+void print_usage(FILE * out)
 {
-    fprintf(stream, "%s: takes newline delimited filenames to watch on stdin "
+    fprintf(out, "%s: takes newline delimited filenames to watch on stdin "
                     "and reports changes on stdout\n", program_name);
-    fprintf(stream, "usage: %s options \n", program_name);
-    fprintf(stream,
-           "  -h  --help             Display this usage information.\n");
+    fprintf(out, "usage: %s options \n", program_name);
+    fprintf(out, "  -h  --help             Display this usage information.\n");
 }
 
 void parse_options(int argc, char *argv[])
@@ -40,8 +44,6 @@ void parse_options(int argc, char *argv[])
             case 'h':
                 print_usage(stdout);
                 exit(0);
-            default:
-                break;
         }
     }
 }
@@ -51,9 +53,7 @@ void register_path(int kq, char *path)
     struct kevent k_fchange;
     int fd = open(path, O_EVTONLY);
 
-    if (fd == -1) {
-        err(errno, "couldn't open %s", path);
-    }
+    if (fd == -1) { err(errno, "couldn't open %s", path); }
 
     EV_SET(&k_fchange, fd, EVFILT_VNODE, EV_ADD | EV_CLEAR, 
         NOTE_DELETE | NOTE_WRITE, 0, path);
@@ -65,31 +65,26 @@ void register_path(int kq, char *path)
 
 void register_paths(int kq, FILE * in)
 {
-    char **write_ptr = NULL;
     char *line;
     size_t len;
     int lineoffset;
-
-    if (write_ptr == NULL) {
-        write_ptr = (char**)&paths;
-    }
+    struct path_entry *new_path;
 
     while ((line = fgetln(in, &len)) != NULL)  {
-        lineoffset = line[len - 1] == '\n' ? -1 : 0;
-        *write_ptr = malloc(len + lineoffset + 1);
-        strncpy(*write_ptr, line, len + lineoffset);
-
-        register_path(kq, *write_ptr);
-
-        if ((uintptr_t)++write_ptr > ((uintptr_t)&paths + paths_size - 1)) {
-            paths = realloc(paths, paths_size + MIN_PATHS * sizeof(char *));
-            if (paths == NULL) {
-                err(errno, "couldn't reallocate memory for paths");
-            }
-
-            write_ptr = (char **)((uintptr_t)&paths + paths_size);
-            paths_size = paths_size + paths_size;
+        if (!(new_path = malloc(sizeof(struct path_entry)))) {
+            err(1, "couldn't allocate memory for path entry");
         }
+
+        lineoffset = line[len - 1] == '\n' ? -1 : 0;
+        if (!(new_path->path = malloc(len + lineoffset + 1))) {
+            err(1, "couldn't allocate memory for path");
+        }
+        strncpy(new_path->path, line, len + lineoffset);
+
+        insque(new_path, paths_head);
+        paths_head = new_path;
+
+        register_path(kq, new_path->path);
     }
 }
 
@@ -118,6 +113,7 @@ void watcher_loop(FILE * in, FILE * out)
         if (kevent(kq, NULL, 0, &k_event, 1, NULL) == -1) {
             err(1, "error checking kqueue");
         }
+
         if (k_event.ident == in_fno && k_event.filter == EVFILT_READ) {
             register_paths(kq, in);
         } else {
@@ -130,11 +126,6 @@ int main(int argc, char *argv[])
 {
     program_name = basename(argv[0]);
     parse_options(argc, argv);
-
-    paths = malloc(paths_size);
-    if (paths == NULL) {
-        err(errno, "couldn't allocate memory for paths");
-    }
-
     watcher_loop(stdin, stdout);
+    return 1;
 }
