@@ -8,6 +8,7 @@
 #include <fcntl.h>
 #include <err.h>
 #include <errno.h>
+#include <string.h>
 
 const char* program_name;
 
@@ -48,7 +49,7 @@ void parse_options(int argc, char *argv[])
 void register_path(int kq, char *path)
 {
     struct kevent k_fchange;
-    int fd = open("/private/tmp/test", O_EVTONLY);
+    int fd = open(path, O_EVTONLY);
 
     if (fd == -1) {
         err(errno, "couldn't open %s", path);
@@ -65,13 +66,19 @@ void register_path(int kq, char *path)
 void register_paths(int kq, FILE * in)
 {
     char **write_ptr = NULL;
-    size_t write_space = 0;
+    char *line;
+    size_t len;
+    int lineoffset;
 
     if (write_ptr == NULL) {
         write_ptr = (char**)&paths;
     }
 
-    while(getline(write_ptr, &write_space, in) > 0) {
+    while ((line = fgetln(in, &len)) != NULL)  {
+        lineoffset = line[len - 1] == '\n' ? -1 : 0;
+        *write_ptr = malloc(len + lineoffset + 1);
+        strncpy(*write_ptr, line, len + lineoffset);
+
         register_path(kq, *write_ptr);
 
         if ((uintptr_t)++write_ptr > ((uintptr_t)&paths + paths_size - 1)) {
@@ -86,9 +93,10 @@ void register_paths(int kq, FILE * in)
     }
 }
 
-void handle_event(struct kevent event)
+void handle_event(struct kevent event, FILE * out)
 {
-    
+    // TODO: show what kind of changes happened
+    fprintf(out, "changed: %s\n", (char *)event.udata);
 }
 
 void watcher_loop(FILE * in, FILE * out)
@@ -113,7 +121,7 @@ void watcher_loop(FILE * in, FILE * out)
         if (k_event.ident == in_fno && k_event.filter == EVFILT_READ) {
             register_paths(kq, in);
         } else {
-            handle_event(k_event);
+            handle_event(k_event, out);
         }
     }
 }
