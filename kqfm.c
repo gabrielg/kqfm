@@ -2,6 +2,7 @@
 #include <sys/event.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdint.h>
 #include <unistd.h>
 #include <getopt.h>
 #include <libgen.h>
@@ -10,6 +11,7 @@
 #include <errno.h>
 #include <string.h>
 #include <search.h>
+#include <signal.h>
 
 const char *program_name;
 
@@ -24,7 +26,7 @@ struct path_entry {
     char *path;
 };
 
-struct path_entry *paths_head = NULL;
+struct path_entry *paths_tail = NULL;
 
 struct {
     int flag;
@@ -70,8 +72,7 @@ void register_path(int kq, char *path)
 
     if (fd == -1) { err(errno, "couldn't open %s", path); }
 
-    EV_SET(&k_fchange, fd, EVFILT_VNODE, EV_ADD | EV_CLEAR, 
-        NOTE_DELETE | NOTE_WRITE, 0, path);
+    EV_SET(&k_fchange, fd, EVFILT_VNODE, EV_ADD|EV_CLEAR, UINT32_MAX, 0, path);
     
     if (kevent(kq, &k_fchange, 1, NULL, 0, NULL) == -1) {
         err(1, "couldn't monitor %s", path);
@@ -83,6 +84,7 @@ void register_paths(int kq, FILE * in)
     char *line;
     size_t len;
     int lineoffset;
+    static struct path_entry *paths_head;
     struct path_entry *new_path;
 
     while ((line = fgetln(in, &len)) != NULL)  {
@@ -98,6 +100,8 @@ void register_paths(int kq, FILE * in)
         new_path->path[len + lineoffset + 1] = '\0';
 
         insque(new_path, paths_head);
+
+        if (!paths_tail) { paths_tail = new_path; }
         paths_head = new_path;
 
         register_path(kq, new_path->path);
@@ -145,7 +149,7 @@ void watcher_loop(FILE * in, FILE * out)
 
     while (1) {
         if (kevent(kq, NULL, 0, &k_event, 1, NULL) == -1) {
-            err(1, "error checking kqueue");
+            if (errno != EINTR) { err(1, "error checking kqueue"); }
         }
 
         if (k_event.ident == in_fno && k_event.filter == EVFILT_READ) {
@@ -156,10 +160,23 @@ void watcher_loop(FILE * in, FILE * out)
     }
 }
 
+void dump_paths(int sig)
+{
+    struct path_entry *p_entry;
+
+    p_entry = paths_tail;
+
+    do {
+        fprintf(stderr, "%s\n", p_entry->path);
+        p_entry = p_entry->next;
+    } while (p_entry);
+}
+
 int main(int argc, char *argv[])
 {
     program_name = basename(argv[0]);
     parse_options(argc, argv);
+    signal(SIGUSR1, dump_paths);
     watcher_loop(stdin, stdout);
     return 1;
 }
