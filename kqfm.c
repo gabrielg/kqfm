@@ -19,12 +19,27 @@ const struct option longopts[] = {
 };
 
 struct path_entry {
-    uintptr_t   *next;
-    uintptr_t   *prev;
-    char        *path;
+    void *next;
+    void *prev;
+    char *path;
 };
 
 struct path_entry *paths_head = NULL;
+
+struct {
+    int flag;
+    char *name;
+} flag_descs[] = {
+    { NOTE_DELETE, "DELETE" },
+    { NOTE_WRITE,  "WRITE" },
+    { NOTE_EXTEND, "EXTEND" },
+    { NOTE_ATTRIB, "ATTRIB" },
+    { NOTE_LINK,   "LINK" },
+    { NOTE_RENAME, "RENAME" },
+    { NOTE_REVOKE, "REVOKE" },
+    { 0, 0 }
+};
+
 
 void print_usage(FILE * out)
 {
@@ -80,6 +95,7 @@ void register_paths(int kq, FILE * in)
             err(1, "couldn't allocate memory for path");
         }
         strncpy(new_path->path, line, len + lineoffset);
+        new_path->path[len + lineoffset + 1] = '\0';
 
         insque(new_path, paths_head);
         paths_head = new_path;
@@ -88,10 +104,28 @@ void register_paths(int kq, FILE * in)
     }
 }
 
+void change_flags_to_msg(int flags, char *buf)
+{
+    int flagged = 0, i;
+
+    for (i = 0; flag_descs[i].flag; i++) {
+        if (flag_descs[i].flag & flags) {
+            buf = realloc(buf,strlen(buf)+strlen(flag_descs[i].name)+flagged+1);
+            if (flagged) { strcat(buf, ","); }
+            strcat(buf, flag_descs[i].name);
+            flagged = 1;
+        }
+    }
+}
+
+
 void handle_event(struct kevent event, FILE * out)
 {
-    // TODO: show what kind of changes happened
-    fprintf(out, "changed: %s\n", (char *)event.udata);
+    char *changes = malloc(1);
+    changes[0] = '\0';
+    change_flags_to_msg(event.fflags, changes);
+    fprintf(out, "%s\t%s\n", (char *)event.udata, changes);
+    free(changes);
 }
 
 void watcher_loop(FILE * in, FILE * out)
