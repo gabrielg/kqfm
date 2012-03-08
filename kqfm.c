@@ -114,26 +114,27 @@ void register_paths(int kq, FILE * in)
     }
 }
 
-void change_flags_to_msg(int flags, char *buf)
+void change_flags_to_msg(int flags, char **buf)
 {
     int flagged = 0, i;
+    size_t buflen;
 
     for (i = 0; flag_descs[i].flag; i++) {
         if (flag_descs[i].flag & flags) {
-            buf = realloc(buf,strlen(buf)+strlen(flag_descs[i].name)+flagged+1);
-            if (flagged) { strcat(buf, ","); }
-            strcat(buf, flag_descs[i].name);
+            buflen = strlen(*buf) + strlen(flag_descs[i].name) + flagged + 1;
+            *buf = realloc(*buf, buflen);
+            if (flagged) { strcat(*buf, ","); }
+            strcat(*buf, flag_descs[i].name);
             flagged = 1;
         }
     }
 }
 
-
 void handle_event(struct kevent event, FILE * out)
 {
     char *changes = malloc(1);
     changes[0] = '\0';
-    change_flags_to_msg(event.fflags, changes);
+    change_flags_to_msg(event.fflags, &changes);
     fprintf(out, "%s\t%s\n", (char *)event.udata, changes);
     free(changes);
 }
