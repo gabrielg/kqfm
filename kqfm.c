@@ -13,6 +13,12 @@
 #include <search.h>
 #include <signal.h>
 
+#ifdef O_EVTONLY
+#define OPEN_MODE O_EVTONLY
+#else
+#define OPEN_MODE O_RDONLY
+#endif
+
 const char *program_name;
 
 const struct option longopts[] = {
@@ -68,12 +74,12 @@ void parse_options(int argc, char *argv[])
 void register_path(int kq, char *path)
 {
     struct kevent k_fchange;
-    int fd = open(path, O_EVTONLY);
+    int fd = open(path, OPEN_MODE);
 
     if (fd == -1) { err(errno, "couldn't open %s", path); }
 
     EV_SET(&k_fchange, fd, EVFILT_VNODE, EV_ADD|EV_CLEAR, UINT32_MAX, 0, path);
-    
+
     if (kevent(kq, &k_fchange, 1, NULL, 0, NULL) == -1) {
         err(1, "couldn't monitor %s", path);
     }
@@ -83,7 +89,7 @@ void register_paths(int kq, FILE * in)
 {
     char *line;
     size_t len;
-    int lineoffset;
+    int pathlen;
     static struct path_entry *paths_head;
     struct path_entry *new_path;
 
@@ -92,12 +98,12 @@ void register_paths(int kq, FILE * in)
             err(1, "couldn't allocate memory for path entry");
         }
 
-        lineoffset = line[len - 1] == '\n' ? -1 : 0;
-        if (!(new_path->path = malloc(len + lineoffset + 1))) {
+        pathlen = len + (line[len - 1] == '\n' ? -1 : 0);
+        if (!(new_path->path = malloc(pathlen + 1))) {
             err(1, "couldn't allocate memory for path");
         }
-        strncpy(new_path->path, line, len + lineoffset);
-        new_path->path[len + lineoffset + 1] = '\0';
+        strncpy(new_path->path, line, pathlen);
+        new_path->path[pathlen] = '\0';
 
         insque(new_path, paths_head);
 
@@ -139,6 +145,10 @@ void watcher_loop(FILE * in, FILE * out)
     int kq;
     int in_fno = fileno(in);
 
+    if (fcntl(fileno(stdin), O_NONBLOCK) == -1) {
+        err(1, "couldn't set O_NONBLOCK on stdin");
+    }
+
     kq = kqueue();
     if (kq == -1) { err(1, "couldn't get kqueue"); }
 
@@ -162,9 +172,9 @@ void watcher_loop(FILE * in, FILE * out)
 
 void dump_paths(int sig)
 {
-    struct path_entry *p_entry;
+    struct path_entry *p_entry = paths_tail;
 
-    p_entry = paths_tail;
+    if (!p_entry) { return; }
 
     do {
         fprintf(stderr, "%s\n", p_entry->path);
