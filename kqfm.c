@@ -19,6 +19,8 @@
 #define OPEN_MODE O_RDONLY
 #endif
 
+sig_atomic_t signal_caught = 0;
+
 const char *program_name;
 
 const struct option longopts[] = {
@@ -163,6 +165,11 @@ void watcher_loop(FILE * in, FILE * out)
             if (errno != EINTR) { err(1, "error checking kqueue"); }
         }
 
+        if (signal_caught) {
+            signal_caught = 0;
+            continue;
+        }
+
         if (k_event.ident == in_fno && k_event.filter == EVFILT_READ) {
             register_paths(kq, in);
         } else {
@@ -174,6 +181,7 @@ void watcher_loop(FILE * in, FILE * out)
 void dump_paths(int sig)
 {
     struct path_entry *p_entry = paths_tail;
+    signal_caught = 1;
 
     if (!p_entry) { return; }
 
