@@ -161,14 +161,12 @@ void watcher_loop(FILE * in, FILE * out)
     }
 
     while (1) {
+        signal_caught = 0;
         if (kevent(kq, NULL, 0, &k_event, 1, NULL) == -1) {
             if (errno != EINTR) { err(1, "error checking kqueue"); }
         }
 
-        if (signal_caught) {
-            signal_caught = 0;
-            continue;
-        }
+        if (signal_caught) { continue; }
 
         if (k_event.ident == in_fno && k_event.filter == EVFILT_READ) {
             register_paths(kq, in);
