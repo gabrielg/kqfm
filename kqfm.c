@@ -87,15 +87,25 @@ void register_path(int kq, char *path)
     }
 }
 
-void register_paths(int kq, FILE * in)
+void register_paths(int kq, FILE *in, int bytes_available, int eof_signaled)
 {
     char *line;
-    size_t len;
+    size_t len, bytes_read = 0;
     int pathlen;
     static struct path_entry *paths_head;
     struct path_entry *new_path;
 
-    while ((line = fgetln(in, &len)) != NULL)  {
+    while ((bytes_read < bytes_available) || (eof_signaled && !feof(in))) {
+        if ((line = fgetln(in, &len)) == NULL) {
+            if (feof(in)) {
+                break;
+            } else {
+                err(1, "couldn't read input");
+            }
+        }
+
+        bytes_read += len;
+
         if (!(new_path = malloc(sizeof(struct path_entry)))) {
             err(1, "couldn't allocate memory for path entry");
         }
@@ -104,6 +114,7 @@ void register_paths(int kq, FILE * in)
         if (!(new_path->path = malloc(pathlen + 1))) {
             err(1, "couldn't allocate memory for path");
         }
+
         strncpy(new_path->path, line, pathlen);
         new_path->path[pathlen] = '\0';
 
@@ -148,10 +159,6 @@ void watcher_loop(FILE * in, FILE * out)
     int kq;
     int in_fno = fileno(in);
 
-    if (fcntl(fileno(stdin), O_NONBLOCK) == -1) {
-        err(1, "couldn't set O_NONBLOCK on stdin");
-    }
-
     kq = kqueue();
     if (kq == -1) { err(1, "couldn't get kqueue"); }
 
@@ -169,7 +176,7 @@ void watcher_loop(FILE * in, FILE * out)
         if (signal_caught) { continue; }
 
         if (k_event.ident == in_fno && k_event.filter == EVFILT_READ) {
-            register_paths(kq, in);
+            register_paths(kq, in, k_event.data, k_event.flags & EV_EOF);
         } else {
             handle_event(k_event, out);
         }
