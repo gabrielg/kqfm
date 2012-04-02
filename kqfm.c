@@ -143,7 +143,7 @@ void change_flags_to_msg(int flags, char **buf)
     }
 }
 
-void handle_event(struct kevent event, FILE * out)
+void handle_event(struct kevent event, FILE *out)
 {
     char *changes = malloc(1);
     changes[0] = '\0';
@@ -201,6 +201,7 @@ int main(int argc, char *argv[])
     program_name = basename(argv[0]);
     parse_options(argc, argv);
     signal(SIGUSR1, dump_paths);
+    setlinebuf(stdout);
     watcher_loop(stdin, stdout);
     return 1;
 }
