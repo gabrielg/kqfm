@@ -1,6 +1,12 @@
-CFLAGS=-g -Wall
+CFLAGS  = -g -Wall
+INSTALL = /usr/bin/install
+PREFIX  = /usr/local
+BINDIR  = $(PREFIX)/bin
 
 kqfm: kqfm.c
 
 clean:
 	rm kqfm
+
+install: kqfm
+	$(INSTALL) kqfm $(BINDIR)/kqfm
