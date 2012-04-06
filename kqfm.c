@@ -13,6 +13,7 @@
 #include <search.h>
 #include <signal.h>
 
+/* FreeBSD doesn't support O_EVTONLY. */
 #ifdef O_EVTONLY
 #define OPEN_MODE O_EVTONLY
 #else
@@ -72,6 +73,7 @@ void parse_options(int argc, char *argv[])
         }
     }
 }
+
 /*
 Takes a kqueue descriptor and a path, and adds a kevent to the queue to monitor
 the file at the given path for changes.
