@@ -72,7 +72,10 @@ void parse_options(int argc, char *argv[])
         }
     }
 }
-
+/*
+Takes a kqueue descriptor and a path, and adds a kevent to the queue to monitor
+the file at the given path for changes.
+*/
 void register_path(int kq, char *path)
 {
     struct kevent k_fchange;
@@ -87,6 +90,11 @@ void register_path(int kq, char *path)
     }
 }
 
+/*
+Takes a kqueue descriptor, an input stream to read from, the number of bytes
+available to read on the stream, and whether EOF has been signaled on the input
+stream, and registers each line read from the stream as a path.
+*/
 void register_paths(int kq, FILE *in, int bytes_available, int eof_signaled)
 {
     char *line;
@@ -95,6 +103,11 @@ void register_paths(int kq, FILE *in, int bytes_available, int eof_signaled)
     static struct path_entry *paths_head;
     struct path_entry *new_path;
 
+    /*
+    Occasionally, kqueue will fire a final event for a stream with the EOF flag
+    set, and give an inaccurate number of bytes available to read from the stream.
+    In that case, we just read until we've actually hit EOF on the stream.
+    */
     while ((bytes_read < bytes_available) || (eof_signaled && !feof(in))) {
         if ((line = fgetln(in, &len)) == NULL) {
             if (feof(in)) {
@@ -127,6 +140,10 @@ void register_paths(int kq, FILE *in, int bytes_available, int eof_signaled)
     }
 }
 
+/*
+Given an int set of EVFILT_VNODE flags and a pointer to a char buffer, writes a
+human readable string representing the flags.
+*/
 void change_flags_to_msg(int flags, char **buf)
 {
     int flagged = 0, i;
@@ -183,6 +200,10 @@ void watcher_loop(FILE * in, FILE * out)
     }
 }
 
+/*
+Signal handler to dump the currently monitored paths to stderr for debugging
+purposes
+*/
 void dump_paths(int sig)
 {
     struct path_entry *p_entry = paths_tail;
