@@ -154,7 +154,9 @@ void change_flags_to_msg(int flags, char **buf)
     for (i = 0; flag_descs[i].flag; i++) {
         if (flag_descs[i].flag & flags) {
             buflen = strlen(*buf) + strlen(flag_descs[i].name) + flagged + 1;
-            *buf = realloc(*buf, buflen);
+            if (!(*buf = realloc(*buf, buflen))) {
+                err(1, "couldn't realloc memory to print change flags");
+            }
             if (flagged) { strcat(*buf, ","); }
             strcat(*buf, flag_descs[i].name);
             flagged = 1;
@@ -164,7 +166,10 @@ void change_flags_to_msg(int flags, char **buf)
 
 void handle_event(struct kevent event, FILE *out)
 {
-    char *changes = malloc(1);
+    char *changes;
+    if (!(changes = malloc(1))) {
+        err(1, "couldn't alloc memory to print changes");
+    }
     changes[0] = '\0';
     change_flags_to_msg(event.fflags, &changes);
     fprintf(out, "%s\t%s\n", (char *)event.udata, changes);
