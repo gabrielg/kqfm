@@ -6,7 +6,7 @@ BINDIR  = $(PREFIX)/bin
 kqfm: kqfm.c
 
 clean:
-	rm kqfm
+	rm -rf kqfm *.dSYM
 
 install: kqfm
 	$(INSTALL) kqfm $(BINDIR)/kqfm
