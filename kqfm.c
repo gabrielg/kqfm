@@ -51,6 +51,8 @@ struct {
     { 0, 0 }
 };
 
+#define ALL_FLAGS NOTE_DELETE | NOTE_WRITE | NOTE_EXTEND | NOTE_ATTRIB | \
+                  NOTE_LINK | NOTE_RENAME | NOTE_REVOKE
 
 void print_usage(FILE * out)
 {
@@ -85,7 +87,7 @@ void register_path(int kq, char *path)
 
     if (fd == -1) { err(errno, "couldn't open %s", path); }
 
-    EV_SET(&k_fchange, fd, EVFILT_VNODE, EV_ADD|EV_CLEAR, UINT32_MAX, 0, path);
+    EV_SET(&k_fchange, fd, EVFILT_VNODE, EV_ADD|EV_CLEAR, ALL_FLAGS, 0, path);
 
     if (kevent(kq, &k_fchange, 1, NULL, 0, NULL) == -1) {
         err(1, "couldn't monitor %s", path);
@@ -150,7 +152,6 @@ void change_flags_to_msg(int flags, char **buf)
 {
     int flagged = 0, i;
     size_t buflen;
-
     for (i = 0; flag_descs[i].flag; i++) {
         if (flag_descs[i].flag & flags) {
             buflen = strlen(*buf) + strlen(flag_descs[i].name) + flagged + 1;
