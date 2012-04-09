@@ -65,6 +65,10 @@ void print_usage(FILE *out)
     fprintf(out, "  -e  --event=EVENT   Event(s) to capture. See man page.\n");
 }
 
+/* Given a pointer to a string and a pointer to a flag variable, finds if the
+ * string matches any known event name (see flag_descs), and sets a bit in the
+ * flag variable to the corresponding event flag value.
+ */
 void handle_event_flag(char *event_flag, uint32_t *watch_flags)
 {
     char *uppered_flag;
