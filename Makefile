@@ -1,4 +1,4 @@
-CFLAGS  = -g -Wall
+CFLAGS  = -g -Wall -std=c99
 INSTALL = /usr/bin/install
 PREFIX  = /usr/local
 BINDIR  = $(PREFIX)/bin
