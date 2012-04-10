@@ -32,6 +32,8 @@ Watch a single file and run a command when it changes in any way.
 
 	echo "file.c" | kqfm | while read changes; do make; done
 
+[The man page](https://github.com/gabrielg/kqfm/blob/master/man/kqfm.md) contains some more usage information.
+
 ## Others
 
 I wrote this to scratch my own itch, which was for something with no dependencies that operates with plain old text, and leaves things like executing commands to other programs.
