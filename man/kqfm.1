@@ -1,0 +1,128 @@
+.\" generated with Ronn/v0.7.3
+.\" http://github.com/rtomayko/ronn/tree/0.7.3
+.
+.TH "KQFM" "1" "April 2012" "" ""
+.
+.SH "NAME"
+\fBkqfm\fR \- monitor a file or a set of files for changes
+.
+.SH "SYNOPSIS"
+\fBkqfm\fR
+.
+.br
+\fBkqfm\fR \fB\-e\fR \fIevent_flag\fR | \fB\-\-event=\fR\fIevent_flag\fR
+.
+.br
+.
+.SH "DESCRIPTION"
+\fBkqfm\fR takes in a newline delimited set of paths on \fBstdin\fR and watches them for changes\. When a change occurs (any by default, can be filtered with \fB\-e\fR \- see \fBEVENT FLAGS\fR), \fBkqfm\fR outputs a line describing the changes\. The output line is tab delimited \- the field in the first position is the path the change happened on, the second is a comma delimited string representing the change(s) that occurred\.
+.
+.SH "OPTIONS"
+.
+.TP
+\fB\-e\fR \fIevent_flag\fR, \fB\-\-event=\fR\fIevent_flag\fR
+The event flag to watch\. This option can be specified more than once, for example: \fBkqfm \-e write \-e attrib\fR
+.
+.SH "EVENT FLAGS"
+Available flags are:
+.
+.IP "\(bu" 4
+\fBDELETE\fR
+.
+.br
+The unlink() system call was called on the file referenced by the descriptor\.
+.
+.IP "\(bu" 4
+\fBWRITE\fR
+.
+.br
+A write occurred on the file referenced by the descriptor\.
+.
+.IP "\(bu" 4
+\fBEXTEND\fR
+.
+.br
+The file referenced by the descriptor was extended\.
+.
+.IP "\(bu" 4
+\fBATTRIB\fR
+.
+.br
+The file referenced by the descriptor had its attributes changed\.
+.
+.IP "\(bu" 4
+\fBLINK\fR
+.
+.br
+The link count on the file changed\.
+.
+.IP "\(bu" 4
+\fBRENAME\fR
+.
+.br
+The file referenced by the descriptor was renamed\.
+.
+.IP "\(bu" 4
+\fBREVOKE\fR
+.
+.br
+Access to the file was revoked via revoke(2) or the underlying fileystem was unmounted\.
+.
+.IP "" 0
+.
+.P
+See \fBEVFILT_VNODE\fR under \fBkqueue(2)\fR for more details on these flags\.
+.
+.SH "EXAMPLES"
+Watch a single file for all changes:
+.
+.IP "" 4
+.
+.nf
+
+$ echo /tmp/example_path | kqfm &
+[1] 577
+$ touch /tmp/example_path
+/tmp/example_path   ATTRIB
+.
+.fi
+.
+.IP "" 0
+.
+.P
+Watch a single file for writes only:
+.
+.IP "" 4
+.
+.nf
+
+$ echo /tmp/example_path | kqfm \-e write &
+[1] 580
+$ echo "what" > /tmp/example_path
+/tmp/example_path   WRITE
+.
+.fi
+.
+.IP "" 0
+.
+.P
+Watch all CSS files in a directory for writes:
+.
+.IP "" 4
+.
+.nf
+
+$ find \. \-name \'*\.css\' | kqfm \-e write
+.
+.fi
+.
+.IP "" 0
+.
+.SH "BUGS"
+The formatting of this man page is fairly poor\.
+.
+.SH "AUTHOR"
+Gabriel Gironda \fIgabriel@gironda\.org\fR
+.
+.SH "SEE ALSO"
+kqueue(2), kqfm home page \fIhttps://github\.com/gabrielg/kqfm\fR
