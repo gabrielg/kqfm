@@ -10,6 +10,8 @@
 
 # KQFM: A utility to monitor files for changes
 
+Latest version: 1.0.0
+
 [Homepage](https://github.com/gabrielg/kqfm)
 
 `kqfm` takes a list of paths on `stdin` and monitors them for changes using `kqueue(1)`, outputting those changes to `stdout`.

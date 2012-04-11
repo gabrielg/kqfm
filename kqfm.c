@@ -14,6 +14,8 @@
 #include <signal.h>
 #include <ctype.h>
 
+#define VERSION "1.0.0"
+
 /* FreeBSD doesn't support O_EVTONLY. */
 #ifdef O_EVTONLY
 #define OPEN_MODE O_EVTONLY
@@ -26,9 +28,10 @@ sig_atomic_t signal_caught = 0;
 const char *program_name;
 
 const struct option longopts[] = {
-    {"help",  no_argument, NULL, 'h'},
-    {"event", required_argument, NULL, 'e'},
-    {NULL,   0,           NULL, 0}
+    {"version", no_argument,       NULL, 'v'},
+    {"help",    no_argument,       NULL, 'h'},
+    {"event",   required_argument, NULL, 'e'},
+    {NULL,      0,                 NULL, 0}
 };
 
 struct path_entry {
@@ -61,8 +64,14 @@ void print_usage(FILE *out)
     fprintf(out, "%s: takes newline delimited filenames to watch on stdin "
                     "and reports changes on stdout\n", program_name);
     fprintf(out, "usage: %s options \n", program_name);
+    fprintf(out, "  -v  --version       Display version.\n");
     fprintf(out, "  -h  --help          Display this usage information.\n");
     fprintf(out, "  -e  --event=EVENT   Event(s) to capture. See man page.\n");
+}
+
+void print_version(FILE *out)
+{
+    fprintf(out, "%s version %s\n", program_name, VERSION);
 }
 
 /* Given a pointer to a string and a pointer to a flag variable, finds if the
@@ -102,11 +111,14 @@ void parse_options(int argc, char *argv[], uint32_t *watch_flags)
 {
     int optchar;
 
-    while ((optchar = getopt_long(argc, argv, "he:", longopts, NULL)) != -1) {
+    while ((optchar = getopt_long(argc, argv, "vhe:", longopts, NULL)) != -1) {
         switch(optchar) {
             case 'e':
                 handle_event_flag(optarg, watch_flags);
                 break;
+            case 'v':
+                print_version(stdout);
+                exit(0);
             case '?':
             case 'h':
                 print_usage(stdout);

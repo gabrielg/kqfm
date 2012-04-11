@@ -13,7 +13,9 @@ kqfm(1) -- monitor a file or a set of files for changes
 ## OPTIONS
 
   * `-e` *event_flag*, `--event=`*event_flag*:
-	The event flag to watch. This option can be specified more than once, for example: 	`kqfm -e write -e attrib`
+	The event flag to watch. This option can be specified more than once, for example: 	`kqfm -e write -e attrib`.
+  * `-v`, `--version`:
+    Print program version.
 
 ## EVENT FLAGS
   
