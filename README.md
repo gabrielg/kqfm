@@ -22,7 +22,17 @@ Latest version: 1.0.0
 
 ## Install
 
-Get the source and run `make install`. A Homebrew recipe for OS X is forthcoming.
+### OS X via Homebrew
+
+`brew install https://raw.github.com/gabrielg/kqfm/master/brew/kqfm.rb`
+
+If you like `kqfm`, please consider submitting [the formula](https://github.com/gabrielg/kqfm/blob/master/brew/kqfm.rb) to [Homebrew](https://github.com/mxcl/homebrew/wiki/Formula-Cookbook).
+
+I've already made the formula, but they frown on authors submitting their own work. I can't blame them.
+
+### OS X and other supported platforms, manually
+
+Get [the source](https://github.com/gabrielg/kqfm/tags) and run `make install`.
 
 ## Examples
 
