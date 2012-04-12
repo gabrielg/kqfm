@@ -69,10 +69,6 @@ Watch all CSS files in a directory for writes:
 	
 	$ find . -name '*.css' | kqfm -e write
 	
-## BUGS
-
-The formatting of this man page is fairly poor.
-
 ## AUTHOR
 
 Gabriel Gironda <gabriel@gironda.org>
