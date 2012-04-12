@@ -38,6 +38,17 @@ Available flags are:
 
 See `EVFILT_VNODE` under `kqueue(2)` for more details on these flags.
 
+## SIGNALS
+
+Sending `SIGUSR1` to `kqfm` will cause it to dump a list of the paths it's currently monitoring to `stderr`.
+
+	$ echo "/tmp/testfile" | kqfm &
+	[1] 25826
+	$ killall -USR1 kqfm
+	/tmp/testfile
+	$ touch /tmp/testfile
+	/tmp/testfile	ATTRIB
+
 ## EXAMPLES
 
 Watch a single file for all changes:

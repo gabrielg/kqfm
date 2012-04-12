@@ -77,6 +77,24 @@ Access to the file was revoked via revoke(2) or the underlying fileystem was unm
 .P
 See \fBEVFILT_VNODE\fR under \fBkqueue(2)\fR for more details on these flags\.
 .
+.SH "SIGNALS"
+Sending \fBSIGUSR1\fR to \fBkqfm\fR will cause it to dump a list of the paths it\'s currently monitoring to \fBstderr\fR\.
+.
+.IP "" 4
+.
+.nf
+
+$ echo "/tmp/testfile" | kqfm &
+[1] 25826
+$ killall \-USR1 kqfm
+/tmp/testfile
+$ touch /tmp/testfile
+/tmp/testfile   ATTRIB
+.
+.fi
+.
+.IP "" 0
+.
 .SH "EXAMPLES"
 Watch a single file for all changes:
 .
