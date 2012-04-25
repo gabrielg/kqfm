@@ -1,0 +1,92 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>kqfm by gabrielg</title>
+    
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>kqfm</h1>
+        <p>A simple CLI tool to watch a set of files under OS X</p>
+        <p class="view"><a href="https://github.com/gabrielg/kqfm">View the Project on GitHub <small>gabrielg/kqfm</small></a></p>
+        <ul>
+          <li><a href="https://github.com/gabrielg/kqfm/zipball/master">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/gabrielg/kqfm/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/gabrielg/kqfm">Fork On <strong>GitHub</strong></a></li>
+        </ul>
+      </header>
+      <section>
+        <h1>KQFM: A utility to monitor files for changes</h1>
+
+<p>Latest version: 1.0.0</p>
+
+<p><a href="https://github.com/gabrielg/kqfm">Homepage</a></p>
+
+<p><code>kqfm</code> takes a list of paths on <code>stdin</code> and monitors them for changes using <code>kqueue(1)</code>, outputting those changes to <code>stdout</code>.</p>
+
+<h2>Dependencies</h2>
+
+<p><code>kqfm</code> has no dependencies. It only works on platforms where <code>kqueue(1)</code> is available, such as Mac OS X, FreeBSD, NetBSD, OpenBSD, and DragonflyBSD.</p>
+
+<h2>Install</h2>
+
+<h3>OS X via Homebrew</h3>
+
+<p><code>brew install https://raw.github.com/gabrielg/kqfm/master/brew/kqfm.rb</code></p>
+
+<p>If you like <code>kqfm</code>, please consider submitting <a href="https://github.com/gabrielg/kqfm/blob/master/brew/kqfm.rb">the formula</a> to <a href="https://github.com/mxcl/homebrew/wiki/Formula-Cookbook">Homebrew</a>.</p>
+
+<p>I've already made the formula, but they frown on authors submitting their own work. I can't blame them.</p>
+
+<h3>OS X and other supported platforms, manually</h3>
+
+<p>Get <a href="https://github.com/gabrielg/kqfm/tags">the source</a> and run <code>make install</code>.</p>
+
+<h2>Examples</h2>
+
+<p>Watch a directory of <code>.md</code> files for writes, and output a listing when a file is written to.</p>
+
+<pre><code>find doc -name '*.md' | kqfm -e write | while read path changes; do ls -la $path; done
+</code></pre>
+
+<p>Watch a single file and run a command when it changes in any way.</p>
+
+<pre><code>echo "file.c" | kqfm | while read changes; do make; done
+</code></pre>
+
+<p><a href="https://github.com/gabrielg/kqfm/blob/master/man/kqfm.md">The man page</a> contains some more usage information.</p>
+
+<h2>Similar projects</h2>
+
+<p><a href="https://github.com/guard/guard">guard</a> and <a href="https://github.com/quackingduck/wach">wach</a> both already exist, and may suit your needs better than this. Check them out too. </p>
+
+<p>I wrote this to scratch my own itch, which was for something with no dependencies that operates with plain old text, and leaves things like executing commands to other programs.</p>
+
+<h2>Contributing</h2>
+
+<p>Patches appreciated. Fork, make changes, and send over a pull request.</p>
+
+<p><a href="https://github.com/rtomayko/ronn">Ronn</a> is used to generate the man page. I suggest using it to preview your work if you're changing the man page, but please don't commit the generated output from <code>ronn</code>, just commit the original Markdown file.</p>
+
+<h2>Author / Copyright</h2>
+
+<p>Gabriel Gironda, 2012. See LICENSE for license details.</p>
+      </section>
+      <footer>
+        <p>This project is maintained by <a href="https://github.com/gabrielg">gabrielg</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+      </footer>
+    </div>
+    <script src="javascripts/scale.fix.js"></script>
+    
+  </body>
+</html>
