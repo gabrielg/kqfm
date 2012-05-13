@@ -14,7 +14,7 @@
 #include <signal.h>
 #include <ctype.h>
 
-#define VERSION "1.0.0"
+#define VERSION "1.0.1"
 
 /* FreeBSD doesn't support O_EVTONLY. */
 #ifdef O_EVTONLY

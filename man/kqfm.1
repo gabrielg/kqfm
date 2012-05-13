@@ -1,7 +1,7 @@
 .\" generated with Ronn/v0.7.3
 .\" http://github.com/rtomayko/ronn/tree/0.7.3
 .
-.TH "KQFM" "1" "April 2012" "" ""
+.TH "KQFM" "1" "May 2012" "" ""
 .
 .SH "NAME"
 \fBkqfm\fR \- monitor a file or a set of files for changes
@@ -135,6 +135,19 @@ Watch all CSS files in a directory for writes:
 .nf
 
 $ find \. \-name \'*\.css\' | kqfm \-e write
+.
+.fi
+.
+.IP "" 0
+.
+.P
+Watch a single file and run a command when it changes in any way:
+.
+.IP "" 4
+.
+.nf
+
+$ echo "file\.c" | kqfm | while read changes; do make; done
 .
 .fi
 .

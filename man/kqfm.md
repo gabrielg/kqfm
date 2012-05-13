@@ -69,6 +69,10 @@ Watch all CSS files in a directory for writes:
 	
 	$ find . -name '*.css' | kqfm -e write
 	
+Watch a single file and run a command when it changes in any way:
+
+	$ echo "file.c" | kqfm | while read changes; do make; done
+
 ## AUTHOR
 
 Gabriel Gironda <gabriel@gironda.org>
