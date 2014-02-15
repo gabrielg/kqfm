@@ -156,7 +156,7 @@ void register_paths(int kq, FILE *in, uint32_t watch_flags,
     char *line;
     size_t len, bytes_read = 0;
     int pathlen;
-    static struct path_entry *paths_head;
+    static struct path_entry *paths_head = NULL;
     struct path_entry *new_path;
 
     /*
@@ -186,6 +186,12 @@ void register_paths(int kq, FILE *in, uint32_t watch_flags,
 
         strncpy(new_path->path, line, pathlen);
         new_path->path[pathlen] = '\0';
+
+        if (!paths_head) {
+            paths_head = new_path;
+            paths_head->next = paths_head;
+            paths_head->prev = paths_head;
+        }
 
         insque(new_path, paths_head);
 
@@ -275,7 +281,7 @@ void dump_paths(int sig)
     do {
         fprintf(stderr, "%s\n", p_entry->path);
         p_entry = p_entry->next;
-    } while (p_entry);
+    } while (p_entry && p_entry != paths_tail);
 }
 
 int main(int argc, char *argv[])
