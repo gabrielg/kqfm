@@ -58,6 +58,10 @@ Patches appreciated. Fork, make changes, and send over a pull request.
 
 [Ronn](https://github.com/rtomayko/ronn) is used to generate the man page. I suggest using it to preview your work if you're changing the man page, but please don't commit the generated output from `ronn`, just commit the original Markdown file.
 
+## Contributors
+
+* [Colin Stolley](https://github.com/ccstolley)
+
 ## Author / Copyright
 
 Gabriel Gironda, 2012. See LICENSE for license details.
